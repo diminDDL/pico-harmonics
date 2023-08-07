@@ -17,23 +17,21 @@
 // Channel 0 is GPIO26
 #define CAPTURE_CHANNEL 0
 #define CAPTURE_DEPTH 1024
+#define MAX_FFT_DATA_LEN CAPTURE_DEPTH  // Maximum data length. Change this according to your needs.
 #define SAMPLE_RATE 500000.0
 
 short capture_buf[CAPTURE_DEPTH];
 
-
 void compute_fft_and_print_magnitudes(short data[], int data_len, double sampling_rate) {
-    int m = 0;
-    while ((1 << m) < data_len) m++;  // Calculate the value of m for FFT, based on data length.
-    short* real = (short*)malloc(data_len * sizeof(short));
-    short* imag = (short*)malloc(data_len * sizeof(short));
-
-    if (!real || !imag) {
-        printf("Memory allocation failed!");
-        free(real);
-        free(imag);
+    if (data_len > MAX_FFT_DATA_LEN) {
+        printf("Data size exceeds maximum limit!");
         return;
     }
+
+    int m = 0;
+    while ((1 << m) < data_len) m++;  // Calculate the value of m for FFT, based on data length.
+    short real[MAX_FFT_DATA_LEN];
+    short imag[MAX_FFT_DATA_LEN];
 
     // Copy the data to the real array and set imaginary parts to 0.
     for (int i = 0; i < data_len; i++) {
@@ -48,11 +46,9 @@ void compute_fft_and_print_magnitudes(short data[], int data_len, double samplin
     for (int i = 0; i < data_len/2; i++) {  // Only up to Nyquist frequency.
         double frequency = i * sampling_rate / data_len;
         double magnitude = sqrt(real[i] * real[i] + imag[i] * imag[i]);
-        printf("Frequency %f Hz: Magnitude = %f\n", frequency, magnitude);
+        //printf("Frequency %f Hz: Magnitude = %f\n", frequency, magnitude);
+        printf("%.2f,%.2f\n", frequency, magnitude);
     }
-
-    free(real);
-    free(imag);
 }
 
 int main() {
