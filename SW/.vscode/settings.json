@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.m": "matlab",
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "ranges": "cpp",
+        "fix_fft.h": "c"
+    }
+}
