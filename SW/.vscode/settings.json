@@ -5,6 +5,7 @@
         "string": "cpp",
         "string_view": "cpp",
         "ranges": "cpp",
-        "fix_fft.h": "c"
+        "fix_fft.h": "c",
+        "stdlib.h": "c"
     }
 }

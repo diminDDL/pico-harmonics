@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <math.h>
 #include "pico/mem_ops.h"
+#include "pico/divider.h"
 #include "hardware/pio.h"
 #include "hardware/vreg.h"
 #include "hardware/clocks.h"
@@ -13,6 +14,7 @@
 #include "lib/pwm.hpp"
 #include "pwm.pio.h"
 #include "lib/fix_fft.h"
+#include "lib/windows.h"
 
 // Channel 0 is GPIO26
 #define CAPTURE_CHANNEL 0
@@ -20,9 +22,18 @@
 #define MAX_FFT_DATA_LEN CAPTURE_DEPTH  // Maximum data length. Change this according to your needs.
 #define SAMPLE_RATE 500000.0
 
-short capture_buf[CAPTURE_DEPTH];
+uint16_t capture_buf[CAPTURE_DEPTH];
 
-void compute_fft_and_print_magnitudes(short data[], int data_len, double sampling_rate) {
+void apply_window(int16_t *signal) {
+    for (int i = 0; i < CAPTURE_DEPTH; i++) {
+        int32_t temp = (int32_t) signal[i] * window_hft90d_1024[i];
+        signal[i] = (int16_t) (temp >> 15);  // Convert back from Q15 to int16_t
+        //printf("%d\n", signal[i]);
+    }
+}
+
+
+void __time_critical_func(compute_fft_and_print_magnitudes)(uint16_t data[], int data_len, double sampling_rate) {
     if (data_len > MAX_FFT_DATA_LEN) {
         printf("Data size exceeds maximum limit!");
         return;
@@ -35,25 +46,30 @@ void compute_fft_and_print_magnitudes(short data[], int data_len, double samplin
 
     // Copy the data to the real array and set imaginary parts to 0.
     for (int i = 0; i < data_len; i++) {
-        real[i] = data[i];
+        real[i] = (int32_t)data[i] - 32768;
         imag[i] = 0;
     }
+
+    // Apply window function.
+    apply_window(real);
 
     // Perform the FFT.
     fix_fft(real, imag, m, 0);
 
     // Print the frequency bins and their magnitudes.
+    printf("=====\n");
     for (int i = 0; i < data_len/2; i++) {  // Only up to Nyquist frequency.
         double frequency = i * sampling_rate / data_len;
         double magnitude = sqrt(real[i] * real[i] + imag[i] * imag[i]);
         //printf("Frequency %f Hz: Magnitude = %f\n", frequency, magnitude);
         printf("%.2f,%.2f\n", frequency, magnitude);
     }
+    printf("===\n");
 }
 
 int main() {
-    //vreg_set_voltage(VREG_VOLTAGE_1_20);
-    set_sys_clock_khz(100000, true);
+    vreg_set_voltage(VREG_VOLTAGE_MAX);
+    set_sys_clock_khz(200000, true);
     stdio_init_all();
     sleep_ms(3000);
     gpio_init(25);
@@ -80,7 +96,7 @@ int main() {
 
     adc_set_clkdiv(0);
 
-    printf("Arming DMA\n");
+    //printf("Arming DMA\n");
     // Set up the DMA to start transferring data as soon as it appears in FIFO
     uint dma_chan = dma_claim_unused_channel(true);
     dma_channel_config cfg = dma_channel_get_default_config(dma_chan);
@@ -93,43 +109,40 @@ int main() {
     // Pace transfers based on availability of ADC samples
     channel_config_set_dreq(&cfg, DREQ_ADC);
 
-    dma_channel_configure(dma_chan, &cfg,
-        capture_buf,    // dst
-        &adc_hw->fifo,  // src
-        CAPTURE_DEPTH,  // transfer count
-        true            // start immediately
-    );
-
-    printf("Starting capture\n");
-    adc_run(true);
-
-    // Once DMA finishes, stop any new conversions from starting, and clean up
-    // the FIFO in case the ADC was still mid-conversion.
-    dma_channel_wait_for_finish_blocking(dma_chan);
-    printf("Capture finished\n");
-    adc_run(false);
-    adc_fifo_drain();
-
-    sleep_ms(100);
-
-    // go through the array and mask the lower 12 bits because the ADC is 12 bits
-    for (int i = 0; i < CAPTURE_DEPTH; ++i) {
-        capture_buf[i] &= 0x0FFF;
-    }
-
-    // Print samples to stdout so you can display them in pyplot, excel, matlab
-    for (int i = 0; i < CAPTURE_DEPTH; ++i) {
-        printf("%d,", capture_buf[i]);
-        //printf("%d\n", i);
-    }
-
-    printf("RUNNING FFT\n");
-
-    int data_len = sizeof(capture_buf) / sizeof(capture_buf[0]);
-    compute_fft_and_print_magnitudes(capture_buf, CAPTURE_DEPTH, SAMPLE_RATE);
 
     while (true) {
-        tight_loop_contents();
+        dma_channel_configure(dma_chan, &cfg,
+           capture_buf,    // dst
+           &adc_hw->fifo,  // src
+           CAPTURE_DEPTH,  // transfer count
+           true            // start immediately
+       );
+
+       //printf("Starting capture\n");
+       adc_run(true);
+
+       // Once DMA finishes, stop any new conversions from starting, and clean up
+       // the FIFO in case the ADC was still mid-conversion.
+       dma_channel_wait_for_finish_blocking(dma_chan);
+       //printf("Capture finished\n");
+       adc_run(false);
+       adc_fifo_drain();
+
+       sleep_ms(100);
+
+       // go through the array and mask the lower 12 bits because the ADC is 12 bits
+       for (int i = 0; i < CAPTURE_DEPTH; ++i) {
+           capture_buf[i] &= 0x0FFF;
+       }
+
+       //printf("RUNNING FFT\n");
+
+       int data_len = sizeof(capture_buf) / sizeof(capture_buf[0]);
+       compute_fft_and_print_magnitudes(capture_buf, CAPTURE_DEPTH, SAMPLE_RATE);
+
+
+       //sleep_ms(1000);
+        //return 0;
     }
 
 }

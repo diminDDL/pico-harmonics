@@ -26,6 +26,7 @@
 */
 
 #include "fix_fft.h"
+#include "pico/stdlib.h"
 
 #define N_WAVE      1024    /* full length of Sinewave[] */
 #define LOG2_N_WAVE 10      /* log2(N_WAVE) */
@@ -145,7 +146,7 @@ short Sinewave[N_WAVE-N_WAVE/4] = {
   optimization suited to a particluar DSP processor.
   Scaling ensures that result remains 16-bit.
 */
-inline short FIX_MPY(short a, short b)
+inline short __time_critical_func(FIX_MPY)(short a, short b)
 {
 	/* shift right one less bit (i.e. 15-1) */
 	int c = ((int)a * (int)b) >> 14;
@@ -162,7 +163,7 @@ inline short FIX_MPY(short a, short b)
   RESULT (in-place FFT), with 0 <= n < 2**m; set inverse to
   0 for forward transform (FFT), or 1 for iFFT.
 */
-int fix_fft(short fr[], short fi[], short m, short inverse)
+int __time_critical_func(fix_fft)(short fr[], short fi[], short m, short inverse)
 {
 	int mr, nn, i, j, l, k, istep, n, scale, shift;
 	short qr, qi, tr, ti, wr, wi;

@@ -3077,7 +3077,55 @@ CMakeFiles/blink.dir/home/dmytro/Documents/pico/pico-sdk/src/rp2_common/pico_uni
   /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/pico_unique_id/include/pico/unique_id.h
 
 CMakeFiles/blink.dir/lib/_fix_fft.c.obj: ../lib/\ fix_fft.c \
-  ../lib/fix_fft.h
+  ../lib/fix_fft.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/common/pico_stdlib/include/pico/stdlib.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/common/pico_base/include/pico.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/common/pico_base/include/pico/types.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/common/pico_base/include/pico/assert.h \
+  /usr/lib/gcc/arm-none-eabi/10.3.1/include/stdbool.h \
+  /usr/include/newlib/assert.h \
+  /usr/include/newlib/_ansi.h \
+  /usr/include/newlib/newlib.h \
+  /usr/include/newlib/_newlib_version.h \
+  /usr/include/newlib/sys/config.h \
+  /usr/include/newlib/machine/ieeefp.h \
+  /usr/include/newlib/sys/features.h \
+  /usr/lib/gcc/arm-none-eabi/10.3.1/include/stdint.h \
+  /usr/lib/gcc/arm-none-eabi/10.3.1/include/stddef.h \
+  generated/pico_base/pico/version.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/common/pico_base/include/pico/config.h \
+  generated/pico_base/pico/config_autogen.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/boards/include/boards/pico.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/cmsis/include/cmsis/rename_exceptions.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/pico_platform/include/pico/platform.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/platform_defs.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/addressmap.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/sio.h \
+  /usr/include/newlib/sys/cdefs.h \
+  /usr/include/newlib/machine/_default_types.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/common/pico_base/include/pico/types.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/common/pico_base/include/pico/error.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/pico_stdio/include/pico/stdio.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/common/pico_time/include/pico/time.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/hardware_timer/include/hardware/timer.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/timer.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/hardware_base/include/hardware/address_mapped.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/timer.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/hardware_gpio/include/hardware/gpio.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/sio.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/interp.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/padsbank0.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/pads_bank0.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/iobank0.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/io_bank0.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/hardware_irq/include/hardware/irq.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/intctrl.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/m0plus.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/hardware_uart/include/hardware/uart.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/uart.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/uart.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/dreq.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/pico_stdio_usb/include/pico/stdio_usb.h
 
 CMakeFiles/blink.dir/lib/pwm.cpp.obj: ../lib/pwm.cpp \
   ../lib/pwm.hpp \
@@ -3277,6 +3325,8 @@ CMakeFiles/blink.dir/main.cpp.obj: ../main.cpp \
   /usr/include/newlib/c++/10.3.1/tr1/poly_laguerre.tcc \
   /usr/include/newlib/c++/10.3.1/tr1/riemann_zeta.tcc \
   /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/pico_mem_ops/include/pico/mem_ops.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/common/pico_divider/include/pico/divider.h \
+  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/hardware_divider/include/hardware/divider.h \
   /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/hardware_pio/include/hardware/pio.h \
   /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/pio.h \
   /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/pio.h \
@@ -3298,8 +3348,15 @@ CMakeFiles/blink.dir/main.cpp.obj: ../main.cpp \
   /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/dma.h \
   ../lib/pwm.hpp \
   pwm.pio.h \
-  ../lib/fix_fft.h
+  ../lib/fix_fft.h \
+  ../lib/windows.h
 
+
+../lib/windows.h:
+
+/home/dmytro/Documents/pico/pico-sdk/src/rp2_common/hardware_divider/include/hardware/divider.h:
+
+/home/dmytro/Documents/pico/pico-sdk/src/common/pico_divider/include/pico/divider.h:
 
 /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/pico_mem_ops/include/pico/mem_ops.h:
 

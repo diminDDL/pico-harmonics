@@ -99,6 +99,8 @@ CMakeFiles/blink.dir/main.cpp.obj: \
  /usr/include/newlib/c++/10.3.1/tr1/poly_laguerre.tcc \
  /usr/include/newlib/c++/10.3.1/tr1/riemann_zeta.tcc \
  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/pico_mem_ops/include/pico/mem_ops.h \
+ /home/dmytro/Documents/pico/pico-sdk/src/common/pico_divider/include/pico/divider.h \
+ /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/hardware_divider/include/hardware/divider.h \
  /home/dmytro/Documents/pico/pico-sdk/src/rp2_common/hardware_pio/include/hardware/pio.h \
  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/pio.h \
  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/pio.h \
@@ -120,4 +122,5 @@ CMakeFiles/blink.dir/main.cpp.obj: \
  /home/dmytro/Documents/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/dma.h \
  /home/dmytro/Documents/projects/pico-harmonics/SW/lib/pwm.hpp \
  /home/dmytro/Documents/projects/pico-harmonics/SW/build/pwm.pio.h \
- /home/dmytro/Documents/projects/pico-harmonics/SW/lib/fix_fft.h
+ /home/dmytro/Documents/projects/pico-harmonics/SW/lib/fix_fft.h \
+ /home/dmytro/Documents/projects/pico-harmonics/SW/lib/windows.h
