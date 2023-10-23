@@ -11,6 +11,7 @@
 #include "hardware/pwm.h"
 #include "hardware/adc.h"
 #include "hardware/dma.h"
+#include "hardware/spi.h"
 #include "lib/pwm.hpp"
 #include "pwm.pio.h"
 #include "lib/fix_fft.h"
@@ -110,39 +111,83 @@ int main() {
     channel_config_set_dreq(&cfg, DREQ_ADC);
 
 
-    while (true) {
-        dma_channel_configure(dma_chan, &cfg,
-           capture_buf,    // dst
-           &adc_hw->fifo,  // src
-           CAPTURE_DEPTH,  // transfer count
-           true            // start immediately
-       );
+    // while (true) {
+    //     dma_channel_configure(dma_chan, &cfg,
+    //        capture_buf,    // dst
+    //        &adc_hw->fifo,  // src
+    //        CAPTURE_DEPTH,  // transfer count
+    //        true            // start immediately
+    //    );
 
-       //printf("Starting capture\n");
-       adc_run(true);
+    //    //printf("Starting capture\n");
+    //    adc_run(true);
 
-       // Once DMA finishes, stop any new conversions from starting, and clean up
-       // the FIFO in case the ADC was still mid-conversion.
-       dma_channel_wait_for_finish_blocking(dma_chan);
-       //printf("Capture finished\n");
-       adc_run(false);
-       adc_fifo_drain();
+    //    // Once DMA finishes, stop any new conversions from starting, and clean up
+    //    // the FIFO in case the ADC was still mid-conversion.
+    //    dma_channel_wait_for_finish_blocking(dma_chan);
+    //    //printf("Capture finished\n");
+    //    adc_run(false);
+    //    adc_fifo_drain();
 
-       sleep_ms(100);
+    //    sleep_ms(100);
 
-       // go through the array and mask the lower 12 bits because the ADC is 12 bits
-       for (int i = 0; i < CAPTURE_DEPTH; ++i) {
-           capture_buf[i] &= 0x0FFF;
-       }
+    //    // go through the array and mask the lower 12 bits because the ADC is 12 bits
+    //    for (int i = 0; i < CAPTURE_DEPTH; ++i) {
+    //        capture_buf[i] &= 0x0FFF;
+    //    }
 
-       //printf("RUNNING FFT\n");
+    //    //printf("RUNNING FFT\n");
 
-       int data_len = sizeof(capture_buf) / sizeof(capture_buf[0]);
-       compute_fft_and_print_magnitudes(capture_buf, CAPTURE_DEPTH, SAMPLE_RATE);
+    //    int data_len = sizeof(capture_buf) / sizeof(capture_buf[0]);
+    //    compute_fft_and_print_magnitudes(capture_buf, CAPTURE_DEPTH, SAMPLE_RATE);
 
 
-       //sleep_ms(1000);
-        //return 0;
+    //    //sleep_ms(1000);
+    //     //return 0;
+    // }
+
+    // configure AD4000
+
+    #define CS_PIN 9
+    #define SCLK_PIN 10
+    #define SDI_PIN 11
+    #define SDO_PIN 12
+
+    spi_init(spi1, 50 * 1000);
+    gpio_set_function(SDO_PIN, GPIO_FUNC_SPI);
+    gpio_set_function(SCLK_PIN, GPIO_FUNC_SPI);
+    gpio_set_function(SDI_PIN, GPIO_FUNC_SPI);
+
+    // configure the SPI instance, sampling on falling edge, MSB first
+    spi_set_format(spi1, 16, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
+
+    // CS is actually conv and is active high
+    gpio_init(CS_PIN);
+    gpio_set_dir(CS_PIN, GPIO_OUT);
+    gpio_put(CS_PIN, 0);
+
+
+    uint16_t repeat = 0x0000;
+    uint16_t result = 0x0000;
+
+    while (true)
+    {
+        // pull the conv pin high
+        gpio_put(CS_PIN, 1);
+        // wait for a microsecond
+        sleep_us(1);
+        // pull the conv pin low
+        gpio_put(CS_PIN, 0);
+        // wait for a microsecond
+        sleep_us(1);
+        // read 16 bits from the spi bus
+        uint16_t len = spi_read16_blocking(spi1, repeat, &result, 1);
+        // print the result
+        printf("%d - %16b\n", result, result);
+        // wait for a while
+        sleep_ms(1000);
+        
     }
+    
 
 }
