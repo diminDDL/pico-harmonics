@@ -34,7 +34,7 @@ pico_set_boot_stage2(${PROJECT_NAME} slower_boot2)
 
 # Create C header file with the name <pio program>.pio.h
 pico_generate_pio_header(${PROJECT_NAME}  
-        ${CMAKE_CURRENT_LIST_DIR}/pwm.pio
+        ${CMAKE_CURRENT_LIST_DIR}/adc.pio
 )
 
 # Create map/bin/hex/uf2 files
