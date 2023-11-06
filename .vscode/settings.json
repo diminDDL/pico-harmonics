@@ -1,7 +1,0 @@
-{
-    "cmake.sourceDirectory": "/home/dmytro/Documents/projects/pico-harmonics/SW",
-    "files.associations": {
-        "*.m": "matlab",
-        "random": "cpp"
-    }
-}

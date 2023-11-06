@@ -21,7 +21,7 @@
 #define CAPTURE_CHANNEL 0
 #define CAPTURE_DEPTH 1024
 #define MAX_FFT_DATA_LEN CAPTURE_DEPTH // Maximum data length. Change this according to your needs.
-#define SAMPLE_RATE 500000.0
+#define SAMPLE_RATE 350000.0
 
 uint16_t capture_buf[CAPTURE_DEPTH];
 
@@ -79,6 +79,7 @@ int main()
     vreg_set_voltage(VREG_VOLTAGE_MAX);
     set_sys_clock_khz(200000, true);
     stdio_init_all();
+
     sleep_ms(1000);
 
     PWM pwm(15, pwm_gpio_to_slice_num(15));
@@ -158,7 +159,7 @@ int main()
     PIO pio = pio0;
     uint adc_sm = pio_claim_unused_sm(pio, true);
     uint adc_offset = pio_add_program(pio, &adc_program);
-    adc_program_init(pio, adc_sm, adc_offset, 100.0, SCLK_PIN, CS_PIN, SDO_PIN);
+    adc_program_init(pio, adc_sm, adc_offset, 5.0, SCLK_PIN, CS_PIN, SDO_PIN);
 
     pio_sm_set_enabled(pio, adc_sm, true);
 
@@ -183,7 +184,6 @@ int main()
     uint16_t repeat = 0x0001;
     uint16_t result = 0x0000;
 
-    const uint dma_tx = dma_claim_unused_channel(true);
     const uint dma_rx = dma_claim_unused_channel(true);
 
     uint16_t zero = 0x0000;
@@ -203,63 +203,48 @@ int main()
         // //print the result
         // printf("%d - %16b\n", result, result);
 
-        // printf("Starting capture\n");
+        // start the DMA
+        pio_sm_drain_tx_fifo(pio, adc_sm);
+        dma_channel_config c = dma_channel_get_default_config(dma_rx);
+        channel_config_set_read_increment(&c, false);
+        channel_config_set_write_increment(&c, true);
+        channel_config_set_transfer_data_size(&c, DMA_SIZE_16);
+        channel_config_set_dreq(&c, pio_get_dreq(pio, adc_sm, false));
+        dma_channel_configure(dma_rx, &c,
+                              capture_buf,       // Destinatinon pointer
+                              &pio->rxf[adc_sm], // Source pointer
+                              CAPTURE_DEPTH,     // Number of transfers
+                              true               // Start immediately
+        );
 
-        // dma_channel_config c = dma_channel_get_default_config(dma_tx);
-        // channel_config_set_transfer_data_size(&c, DMA_SIZE_16);
-        // channel_config_set_dreq(&c, spi_get_dreq(spi1, true));
-        // channel_config_set_read_increment(&c, false);
-        // channel_config_set_write_increment(&c, false);
-        // dma_channel_configure(dma_tx, &c,
-        //                       &spi_get_hw(spi1)->dr, // write address
-        //                       &repeat,                        // read address
-        //                       CAPTURE_DEPTH,                    // element count (each element is of size transfer_data_size)
-        //                       false);                       // don't start yet
-
-        // c = dma_channel_get_default_config(dma_rx);
-        // channel_config_set_transfer_data_size(&c, DMA_SIZE_16);
-        // channel_config_set_dreq(&c, spi_get_dreq(spi1, false));
-        // channel_config_set_read_increment(&c, false);
-        // channel_config_set_write_increment(&c, true);
-        // dma_channel_configure(dma_rx, &c,
-        //                       capture_buf,           // write address
-        //                       &spi_get_hw(spi1)->dr, // read address
-        //                       CAPTURE_DEPTH,         // element count (each element is of size transfer_data_size)
-        //                       false);                 // don't start yet
-
-        // gpio_set_function(SDO_PIN, GPIO_FUNC_SPI);
-
-        // dma_start_channel_mask((1u << dma_tx) | (1u << dma_rx));
-
-        // // wait until dma is done
+        // wait for the DMA to finish
         // dma_channel_wait_for_finish_blocking(dma_rx);
-
-        // gpio_set_function(SDO_PIN, GPIO_FUNC_SIO);
-        // gpio_init(SDO_PIN);
-        // gpio_set_dir(SDO_PIN, GPIO_OUT);
-        // gpio_put(SDO_PIN, 1);
-
-        // // print 100 results to the console
-        // for (int i = 0; i < 100; i++)
-        // {
-        //     printf("%d - %16b\n", capture_buf[i], capture_buf[i]);
-        // }
-
-        // printf("Capture finished\n");
-
-        // // wait for a while
-        // sleep_ms(1000);
+        while (dma_channel_is_busy(dma_rx))
+            tight_loop_contents();
 
         // drain the pio fifo
-        pio_sm_drain_tx_fifo(pio, adc_sm);
-        uint16_t data_array[128] = {0}; // Renamed the array to data_array
-        size_t i = 0;
-        while (i < 128)
-        {
-            uint16_t data_value = pio_sm_get_blocking(pio, adc_sm); // Renamed to data_value
-            data_array[i] = data_value; // Using the renamed array
-            i += 1;
-        }
-        printf("%d\n%016b\n", data_array[20], data_array[20]);
+
+        // uint16_t data_array[128] = {0}; // Renamed the array to data_array
+        // size_t i = 0;
+        // while (i < 128)
+        // {
+        //     uint16_t data_value = pio_sm_get_blocking(pio, adc_sm); // Renamed to data_value
+        //     data_array[i] = data_value; // Using the renamed array
+        //     i += 1;
+        // }
+        // printf("%d\n%016b\n", capture_buf[20], capture_buf[20]);
+        
+        int data_len = sizeof(capture_buf) / sizeof(capture_buf[0]);
+        compute_fft_and_print_magnitudes(capture_buf, CAPTURE_DEPTH, SAMPLE_RATE);
+        
+
+        // printf("=====\n");
+        // // print all the data in the capture
+        // for (int i = 0; i < CAPTURE_DEPTH; i++)
+        // {
+        //     printf("%d,\n", capture_buf[i]);
+        // }
+        // printf("=====\n");
+        // sleep_ms(1000);
     }
 }

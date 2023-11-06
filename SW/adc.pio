@@ -3,13 +3,13 @@
 
 ; one CONV pin as pins, one CLK pin as sideset, one SDI as in pin
 .wrap_target
-set pins 0           [2]        side 0          ; pull CONV low
+set pins 0                      side 0          ; pull CONV low
 set x, 15                       side 0          ; 16 transfers
 bitloop:
     nop              [1]        side 1
     in pins, 1                  side 1          ; read SDI bit
     jmp x-- bitloop  [2]        side 0          ; loop until x == 0
-set pins 1           [15]       side 0          ; pull CONV high
+set pins 1           [15]       side 1          ; pull CONV high
 .wrap
 
 
