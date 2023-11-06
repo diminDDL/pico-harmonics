@@ -12,6 +12,7 @@
 #include "hardware/adc.h"
 #include "hardware/dma.h"
 #include "hardware/spi.h"
+#include "hardware/interp.h"
 #include "lib/pwm.hpp"
 #include "adc.pio.h"
 #include "lib/fix_fft.h"
@@ -74,11 +75,66 @@ void __time_critical_func(compute_fft_and_print_magnitudes)(uint16_t data[], int
     printf("===\n");
 }
 
+/*
+  FIX_MPY() - fixed-point multiplication & scaling.
+  Substitute inline assembly for hardware-specific
+  optimization suited to a particluar DSP processor.
+  Scaling ensures that result remains 16-bit.
+*/
+inline short __time_critical_func(FIX_MPY)(short a, short b)
+{
+	/* shift right one less bit (i.e. 15-1) */
+    int c = ((int)a * (int)b);
+    //printf("c - %d\n", c);
+    interp0->accum[0] = c;
+    interp0->accum[1] = c;
+
+    //a = interp0->peek[0];
+    //printf("lane 0 - %d\n", a);
+    //b = interp0->peek[1];
+    //printf("lane 1 - %d\n", b);
+
+	return interp0->pop[2];
+}
+
+inline short __time_critical_func(FIX_MPY_ORIG)(short a, short b)
+{
+	/* shift right one less bit (i.e. 15-1) */
+	int c = ((int)a * (int)b) >> 14;
+    //printf("c - %d\n", c);
+	/* last bit shifted out = rounding-bit */
+	b = c & 0x01;
+    //printf("b - %d\n", b);
+	/* last shift + rounding bit */
+	a = (c >> 1) + b;
+    //printf("a - %d\n", a);
+	return a;
+}
+
 int main()
 {
     vreg_set_voltage(VREG_VOLTAGE_MAX);
     set_sys_clock_khz(200000, true);
     stdio_init_all();
+
+    // configure the interpolators
+    // int0 lane 0
+    interp_config cfg = interp_default_config();
+    interp_config_set_shift(&cfg, 15);
+    interp_config_set_mask(&cfg, 0, 15);
+    interp_config_set_signed(&cfg, true);
+    interp_set_config(interp0, 0, &cfg);
+
+    // int0 lane 1
+    cfg = interp_default_config();
+    interp_config_set_shift(&cfg, 14);
+    interp_config_set_mask(&cfg, 0, 0);
+    interp_set_config(interp0, 1, &cfg);
+
+    // // int1 lane 0
+    // cfg = interp_default_config();
+    // interp_config_set_shift(&cfg, 14);
+    // interp_set_config(interp1, 0, &cfg);
 
     sleep_ms(1000);
 
@@ -235,8 +291,24 @@ int main()
         // printf("%d\n%016b\n", capture_buf[20], capture_buf[20]);
         
         int data_len = sizeof(capture_buf) / sizeof(capture_buf[0]);
-        compute_fft_and_print_magnitudes(capture_buf, CAPTURE_DEPTH, SAMPLE_RATE);
+        //compute_fft_and_print_magnitudes(capture_buf, CAPTURE_DEPTH, SAMPLE_RATE);
         
+        // measure performance of FIX_MPY
+        uint32_t start = time_us_32();
+        short a = 0x7FFF;
+        short b = 0x7FFF - 1;
+        for(short i = 0; i <= b; i++) {
+            FIX_MPY(a, i);
+        }
+        uint32_t end = time_us_32();
+
+        printf("FIX_MPY took %d us to do %d calculations\n", end - start, b);
+
+        // for(short d = 0; d <= 10; d++) {
+        //     printf("%d * %d = %d\n", 0x7FFF, d, FIX_MPY(0x7FFF, d));
+        // }
+
+        sleep_ms(500);
 
         // printf("=====\n");
         // // print all the data in the capture
